@@ -1,0 +1,725 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Sorteo de alumnado (sin repeticiones)</title>
+  <style>
+    :root{
+      --bg:#0b1220;
+      --card:#121b2f;
+      --card2:#0f1730;
+      --text:#e9eeff;
+      --muted:#9fb0da;
+      --accent:#7aa7ff;
+      --danger:#ff6b6b;
+      --ok:#33d69f;
+      --border: rgba(255,255,255,.10);
+      --shadow: 0 10px 30px rgba(0,0,0,.35);
+      --radius: 18px;
+      --gap: 14px;
+      --font: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, "Apple Color Emoji","Segoe UI Emoji";
+    }
+    *{ box-sizing:border-box; }
+    body{
+      margin:0; background: radial-gradient(1200px 600px at 20% -10%, rgba(122,167,255,.35), transparent 60%),
+                         radial-gradient(900px 500px at 90% 10%, rgba(51,214,159,.20), transparent 55%),
+                         var(--bg);
+      color:var(--text);
+      font-family:var(--font);
+    }
+    header{
+      padding: 22px 18px 8px;
+      max-width: 1100px; margin: 0 auto;
+    }
+    h1{
+      margin:0 0 6px; font-size: 22px; letter-spacing:.2px;
+    }
+    .sub{
+      margin:0; color:var(--muted); font-size: 13px;
+    }
+    main{
+      max-width:1100px; margin: 0 auto; padding: 14px 18px 26px;
+      display:grid; gap: var(--gap);
+      grid-template-columns: 380px 1fr;
+    }
+    @media (max-width: 980px){
+      main{ grid-template-columns: 1fr; }
+    }
+    .card{
+      background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03));
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow);
+      border-radius: var(--radius);
+      overflow:hidden;
+    }
+    .card .hd{
+      padding: 14px 14px 10px;
+      border-bottom: 1px solid var(--border);
+      display:flex; align-items:center; justify-content:space-between; gap:10px;
+      background: rgba(0,0,0,.12);
+    }
+    .card .hd h2{ margin:0; font-size:14px; color: var(--muted); font-weight: 600; }
+    .card .bd{ padding: 14px; }
+    label{
+      display:block; font-size:12px; color:var(--muted); margin: 10px 0 6px;
+    }
+    input[type="text"], input[type="file"], textarea{
+      width:100%;
+      background: rgba(0,0,0,.25);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 10px 10px;
+      outline:none;
+    }
+    textarea{ min-height: 84px; resize: vertical; }
+    .row{ display:flex; gap:10px; }
+    .row > *{ flex:1; }
+    button{
+      border:0;
+      padding: 10px 12px;
+      border-radius: 12px;
+      cursor:pointer;
+      font-weight: 650;
+      color: var(--text);
+      background: rgba(122,167,255,.20);
+      border:1px solid rgba(122,167,255,.35);
+      transition: transform .05s ease, filter .15s ease;
+    }
+    button:hover{ filter: brightness(1.08); }
+    button:active{ transform: translateY(1px); }
+    .btn2{
+      background: rgba(255,255,255,.06);
+      border:1px solid var(--border);
+      color: var(--text);
+    }
+    .danger{
+      background: rgba(255,107,107,.16);
+      border:1px solid rgba(255,107,107,.30);
+    }
+    .ok{
+      background: rgba(51,214,159,.16);
+      border:1px solid rgba(51,214,159,.30);
+    }
+    .muted{ color: var(--muted); font-size: 12px; }
+    .pill{
+      font-size: 12px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: rgba(0,0,0,.25);
+      border:1px solid var(--border);
+      color: var(--muted);
+      white-space: nowrap;
+    }
+
+    /* lista */
+    .list{
+      display:grid;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 10px;
+    }
+    .student{
+      background: rgba(0,0,0,.22);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 10px;
+      display:flex;
+      gap:10px;
+      align-items:center;
+      min-height: 76px;
+    }
+    .avatar{
+      width: 54px; height: 54px;
+      border-radius: 14px;
+      background: rgba(255,255,255,.06);
+      border:1px solid var(--border);
+      overflow:hidden;
+      flex: 0 0 auto;
+      display:grid; place-items:center;
+      font-weight: 800; color: rgba(255,255,255,.7);
+    }
+    .avatar img{ width:100%; height:100%; object-fit: cover; display:block; }
+    .st-meta{ flex:1 1 auto; min-width:0; }
+    .st-name{
+      margin:0; font-size: 13px; font-weight: 750;
+      overflow:hidden; text-overflow: ellipsis; white-space: nowrap;
+    }
+    .st-tag{
+      margin-top: 4px;
+      font-size: 11px;
+      color: var(--muted);
+      display:flex; gap:6px; align-items:center; flex-wrap:wrap;
+    }
+    .smallbtn{
+      padding: 7px 10px;
+      border-radius: 12px;
+      font-size: 12px;
+      background: rgba(255,255,255,.06);
+      border:1px solid var(--border);
+    }
+    .smallbtn.danger{ background: rgba(255,107,107,.14); border-color: rgba(255,107,107,.25); }
+    .smallbtn.ok{ background: rgba(51,214,159,.14); border-color: rgba(51,214,159,.25); }
+
+    /* panel sorteo */
+    .result{
+      display:grid;
+      grid-template-columns: 1fr;
+      gap: 12px;
+      align-items: start;
+    }
+    .big{
+      background: rgba(0,0,0,.22);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 14px;
+      display:flex; gap:14px;
+      align-items:center;
+      min-height: 110px;
+    }
+    .big .avatar{ width: 84px; height: 84px; border-radius: 22px; }
+    .big h3{ margin:0; font-size: 18px; }
+    .big p{ margin: 6px 0 0; color: var(--muted); font-size: 13px; }
+    .history{
+      display:flex; flex-wrap: wrap; gap: 8px;
+    }
+    .histItem{
+      display:flex; gap: 8px; align-items:center;
+      padding: 8px 10px;
+      border-radius: 999px;
+      background: rgba(0,0,0,.22);
+      border:1px solid var(--border);
+      font-size: 12px;
+      color: var(--muted);
+      max-width: 100%;
+    }
+    .histItem strong{
+      color: var(--text);
+      font-weight: 750;
+      overflow:hidden; text-overflow: ellipsis; white-space: nowrap;
+      max-width: 240px;
+      display:inline-block;
+    }
+    .toast{
+      margin-top: 10px;
+      padding: 10px 12px;
+      border-radius: 12px;
+      border:1px solid var(--border);
+      background: rgba(0,0,0,.22);
+      color: var(--muted);
+      font-size: 12px;
+      display:none;
+    }
+    .toast.show{ display:block; }
+    .sep{ height:1px; background: var(--border); margin: 12px 0; }
+  </style>
+</head>
+
+<body>
+  <header>
+    <h1>Sorteo de alumnado (sin repeticiones)</h1>
+    <p class="sub">Añade nombres y fotos. Sortea al azar sin repetir hasta reiniciar la ronda. Se guarda en tu navegador.</p>
+  </header>
+
+  <main>
+    <!-- Panel izquierdo -->
+    <section class="card">
+      <div class="hd">
+        <h2>Alta de alumnado</h2>
+        <span class="pill" id="countPill">0 alumnos</span>
+      </div>
+      <div class="bd">
+        <label for="name">Nombre y apellidos</label>
+        <input id="name" type="text" placeholder="Ej.: Lucía Fernández" autocomplete="off" />
+
+        <label for="photo">Foto (opcional)</label>
+        <input id="photo" type="file" accept="image/*" />
+
+        <div class="row" style="margin-top:12px;">
+          <button id="addBtn" class="ok">Añadir</button>
+          <button id="clearFormBtn" class="btn2">Limpiar</button>
+        </div>
+
+        <div class="sep"></div>
+
+        <div class="row">
+          <button id="resetRoundBtn" class="btn2">Reiniciar ronda</button>
+          <button id="wipeAllBtn" class="danger">Borrar todo</button>
+        </div>
+
+        <label style="margin-top:14px;">Exportar / importar lista</label>
+        <div class="row">
+          <button id="exportBtn" class="btn2">Exportar</button>
+          <button id="importBtn" class="btn2">Importar</button>
+        </div>
+        <p class="muted" style="margin:10px 0 0;">
+          Exporta para guardar la lista en un archivo y recuperarla cuando quieras.
+        </p>
+
+        <div id="toast" class="toast"></div>
+      </div>
+    </section>
+
+    <!-- Panel derecho -->
+    <section class="card">
+      <div class="hd">
+        <h2>Sorteo</h2>
+        <div style="display:flex; gap:10px; align-items:center;">
+          <span class="pill" id="remainingPill">0 sin salir</span>
+          <button id="drawBtn">Sacar alumno</button>
+        </div>
+      </div>
+
+      <div class="bd result">
+        <div class="big" id="resultBox">
+          <div class="avatar" id="resultAvatar">?</div>
+          <div style="min-width:0;">
+            <h3 id="resultName">Aún no ha salido nadie</h3>
+            <p id="resultInfo">Pulsa “Sacar alumno” para empezar.</p>
+          </div>
+        </div>
+
+        <div>
+          <div style="display:flex; align-items:center; justify-content:space-between; gap:10px;">
+            <p style="margin:0; color:var(--muted); font-size:12px; font-weight:700;">Historial de la ronda</p>
+            <button id="undoBtn" class="smallbtn" title="Deshacer el último resultado">Deshacer</button>
+          </div>
+          <div class="history" id="history"></div>
+          <p class="muted" id="emptyHistory" style="margin:10px 0 0;">Todavía no hay resultados.</p>
+        </div>
+
+        <div class="sep"></div>
+
+        <div style="display:flex; align-items:center; justify-content:space-between; gap:10px;">
+          <h2 style="margin:0; font-size:14px; color:var(--muted); font-weight:600;">Listado</h2>
+          <input id="search" type="text" placeholder="Buscar..." style="max-width:280px;" />
+        </div>
+
+        <div class="list" id="list"></div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const STORAGE_KEY = "sorteo_alumnado_v1";
+
+    /** Estructura:
+     * state = {
+     *   students: [{id, name, photoDataUrl|null}],
+     *   remainingIds: [id, ...],
+     *   historyIds: [id, ...]
+     * }
+     */
+    let state = loadState() ?? {
+      students: [],
+      remainingIds: [],
+      historyIds: []
+    };
+
+    // UI refs
+    const $ = (id) => document.getElementById(id);
+    const nameInput = $("name");
+    const photoInput = $("photo");
+    const addBtn = $("addBtn");
+    const clearFormBtn = $("clearFormBtn");
+    const wipeAllBtn = $("wipeAllBtn");
+    const resetRoundBtn = $("resetRoundBtn");
+    const exportBtn = $("exportBtn");
+    const importBtn = $("importBtn");
+    const drawBtn = $("drawBtn");
+    const undoBtn = $("undoBtn");
+    const listEl = $("list");
+    const historyEl = $("history");
+    const emptyHistoryEl = $("emptyHistory");
+    const resultNameEl = $("resultName");
+    const resultInfoEl = $("resultInfo");
+    const resultAvatarEl = $("resultAvatar");
+    const countPill = $("countPill");
+    const remainingPill = $("remainingPill");
+    const searchInput = $("search");
+    const toastEl = $("toast");
+
+    // Helpers
+    function uid(){
+      return Math.random().toString(16).slice(2) + Date.now().toString(16);
+    }
+    function saveState(){
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    }
+    function loadState(){
+      try{
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if(!raw) return null;
+        const parsed = JSON.parse(raw);
+        if(!parsed || !Array.isArray(parsed.students)) return null;
+        // Normaliza por si faltan campos
+        parsed.remainingIds = Array.isArray(parsed.remainingIds) ? parsed.remainingIds : parsed.students.map(s=>s.id);
+        parsed.historyIds = Array.isArray(parsed.historyIds) ? parsed.historyIds : [];
+        return parsed;
+      }catch{
+        return null;
+      }
+    }
+    function toast(msg){
+      toastEl.textContent = msg;
+      toastEl.classList.add("show");
+      setTimeout(()=>toastEl.classList.remove("show"), 2200);
+    }
+    function getStudentById(id){
+      return state.students.find(s => s.id === id);
+    }
+    function getInitials(name){
+      const parts = name.trim().split(/\s+/).slice(0,2);
+      return parts.map(p => p[0]?.toUpperCase() ?? "").join("") || "?";
+    }
+    function readFileAsDataURL(file){
+      return new Promise((resolve, reject) => {
+        const r = new FileReader();
+        r.onload = () => resolve(r.result);
+        r.onerror = reject;
+        r.readAsDataURL(file);
+      });
+    }
+
+    // Core
+    function syncRoundIfNeeded(){
+      // Si hay alumnado pero remainingIds no coincide (p.ej. alguien nuevo), repáralo sin destruir historial.
+      const ids = new Set(state.students.map(s=>s.id));
+      state.remainingIds = state.remainingIds.filter(id => ids.has(id));
+      state.historyIds = state.historyIds.filter(id => ids.has(id));
+
+      // Añade los que falten a remainingIds si nunca estuvieron
+      const seen = new Set([...state.remainingIds, ...state.historyIds]);
+      for(const s of state.students){
+        if(!seen.has(s.id)) state.remainingIds.push(s.id);
+      }
+    }
+
+    function render(){
+      syncRoundIfNeeded();
+      saveState();
+
+      // Pills
+      countPill.textContent = `${state.students.length} alumnos`;
+      remainingPill.textContent = `${state.remainingIds.length} sin salir`;
+
+      // Sorteo enable
+      drawBtn.disabled = state.remainingIds.length === 0 || state.students.length === 0;
+
+      // Historial
+      historyEl.innerHTML = "";
+      if(state.historyIds.length === 0){
+        emptyHistoryEl.style.display = "block";
+      }else{
+        emptyHistoryEl.style.display = "none";
+        for(const id of state.historyIds){
+          const s = getStudentById(id);
+          if(!s) continue;
+          const pill = document.createElement("div");
+          pill.className = "histItem";
+          pill.innerHTML = `<strong title="${escapeHtml(s.name)}">${escapeHtml(s.name)}</strong>`;
+          historyEl.appendChild(pill);
+        }
+      }
+
+      // Listado (con búsqueda)
+      const q = searchInput.value.trim().toLowerCase();
+      const filtered = state.students
+        .filter(s => s.name.toLowerCase().includes(q))
+        .sort((a,b) => a.name.localeCompare(b.name, "es"));
+
+      listEl.innerHTML = "";
+      for(const s of filtered){
+        const card = document.createElement("div");
+        card.className = "student";
+
+        const av = document.createElement("div");
+        av.className = "avatar";
+        if(s.photoDataUrl){
+          const img = document.createElement("img");
+          img.src = s.photoDataUrl;
+          img.alt = s.name;
+          av.appendChild(img);
+        }else{
+          av.textContent = getInitials(s.name);
+        }
+
+        const meta = document.createElement("div");
+        meta.className = "st-meta";
+
+        const name = document.createElement("p");
+        name.className = "st-name";
+        name.textContent = s.name;
+
+        const tag = document.createElement("div");
+        tag.className = "st-tag";
+        const inRemaining = state.remainingIds.includes(s.id);
+        tag.innerHTML = `
+          <span>${inRemaining ? "Disponible" : "Ya ha salido"}</span>
+          <span style="opacity:.6;">•</span>
+          <span>ID: ${s.id.slice(-6)}</span>
+        `;
+
+        const actions = document.createElement("div");
+        actions.style.display = "flex";
+        actions.style.flexDirection = "column";
+        actions.style.gap = "8px";
+
+        const toggleBtn = document.createElement("button");
+        toggleBtn.className = "smallbtn " + (inRemaining ? "" : "ok");
+        toggleBtn.textContent = inRemaining ? "Marcar como salido" : "Devolver a sorteo";
+        toggleBtn.title = "Control manual por si lo necesitas";
+        toggleBtn.onclick = () => {
+          if(inRemaining){
+            // mover a history
+            state.remainingIds = state.remainingIds.filter(id => id !== s.id);
+            state.historyIds.push(s.id);
+            toast("Marcado como ya salido.");
+          }else{
+            // devolver a remaining (al final)
+            state.historyIds = state.historyIds.filter(id => id !== s.id);
+            state.remainingIds.push(s.id);
+            toast("Devuelto al sorteo.");
+          }
+          render();
+        };
+
+        const delBtn = document.createElement("button");
+        delBtn.className = "smallbtn danger";
+        delBtn.textContent = "Eliminar";
+        delBtn.onclick = () => {
+          if(confirm(`¿Eliminar a "${s.name}"?`)){
+            state.students = state.students.filter(x => x.id !== s.id);
+            state.remainingIds = state.remainingIds.filter(id => id !== s.id);
+            state.historyIds = state.historyIds.filter(id => id !== s.id);
+            toast("Eliminado.");
+            // si era el último resultado, limpia pantalla
+            const lastShown = resultNameEl.dataset.lastId;
+            if(lastShown === s.id){
+              clearResultBox();
+            }
+            render();
+          }
+        };
+
+        actions.appendChild(toggleBtn);
+        actions.appendChild(delBtn);
+
+        meta.appendChild(name);
+        meta.appendChild(tag);
+
+        card.appendChild(av);
+        card.appendChild(meta);
+        card.appendChild(actions);
+
+        listEl.appendChild(card);
+      }
+
+      // Si no hay alumnado, limpia resultado
+      if(state.students.length === 0){
+        clearResultBox();
+      }
+    }
+
+    function escapeHtml(str){
+      return String(str)
+        .replaceAll("&","&amp;")
+        .replaceAll("<","&lt;")
+        .replaceAll(">","&gt;")
+        .replaceAll('"',"&quot;")
+        .replaceAll("'","&#039;");
+    }
+
+    function clearResultBox(){
+      resultNameEl.textContent = "Aún no ha salido nadie";
+      resultInfoEl.textContent = "Pulsa “Sacar alumno” para empezar.";
+      resultAvatarEl.innerHTML = "?";
+      delete resultNameEl.dataset.lastId;
+    }
+
+    function showResult(student){
+      resultNameEl.textContent = student.name;
+      resultInfoEl.textContent = `Resultado guardado en el historial de la ronda.`;
+      resultNameEl.dataset.lastId = student.id;
+
+      resultAvatarEl.innerHTML = "";
+      if(student.photoDataUrl){
+        const img = document.createElement("img");
+        img.src = student.photoDataUrl;
+        img.alt = student.name;
+        resultAvatarEl.appendChild(img);
+      }else{
+        resultAvatarEl.textContent = getInitials(student.name);
+      }
+    }
+
+    function draw(){
+      if(state.remainingIds.length === 0){
+        toast("No quedan alumnos disponibles. Reinicia la ronda.");
+        return;
+      }
+      // sorteo uniforme
+      const idx = Math.floor(Math.random() * state.remainingIds.length);
+      const id = state.remainingIds[idx];
+      const student = getStudentById(id);
+      if(!student) return;
+
+      // actualizar estado: quitar de remaining y añadir a history
+      state.remainingIds.splice(idx, 1);
+      state.historyIds.push(id);
+
+      showResult(student);
+      render();
+    }
+
+    function undoLast(){
+      if(state.historyIds.length === 0){
+        toast("No hay nada que deshacer.");
+        return;
+      }
+      const lastId = state.historyIds.pop();
+      // lo devolvemos al final del saco
+      if(!state.remainingIds.includes(lastId)){
+        state.remainingIds.push(lastId);
+      }
+      const s = getStudentById(lastId);
+      if(s) showResult(s); // muestra el que se ha deshecho como referencia
+      toast("Último resultado deshecho.");
+      render();
+    }
+
+    async function addStudent(){
+      const name = nameInput.value.trim();
+      if(!name){
+        toast("Escribe un nombre.");
+        nameInput.focus();
+        return;
+      }
+      // Evita duplicados exactos por nombre (opcional)
+      const exists = state.students.some(s => s.name.toLowerCase() === name.toLowerCase());
+      if(exists){
+        if(!confirm("Ya existe alguien con ese nombre. ¿Añadir igualmente?")) return;
+      }
+
+      let photoDataUrl = null;
+      const file = photoInput.files?.[0] ?? null;
+      if(file){
+        try{
+          photoDataUrl = await readFileAsDataURL(file);
+        }catch{
+          toast("No pude leer la foto. Prueba otra.");
+          return;
+        }
+      }
+
+      const s = { id: uid(), name, photoDataUrl };
+      state.students.push(s);
+      state.remainingIds.push(s.id);
+
+      // reset form
+      nameInput.value = "";
+      photoInput.value = "";
+      toast("Alumno añadido.");
+      render();
+    }
+
+    function resetRound(){
+      if(state.students.length === 0){
+        toast("No hay alumnado aún.");
+        return;
+      }
+      state.historyIds = [];
+      state.remainingIds = state.students.map(s=>s.id);
+      clearResultBox();
+      toast("Ronda reiniciada.");
+      render();
+    }
+
+    function wipeAll(){
+      if(confirm("Esto borrará TODA la lista y el historial. ¿Seguro?")){
+        state = { students: [], remainingIds: [], historyIds: [] };
+        localStorage.removeItem(STORAGE_KEY);
+        clearResultBox();
+        toast("Todo borrado.");
+        render();
+      }
+    }
+
+    function exportData(){
+      const data = {
+        exportedAt: new Date().toISOString(),
+        students: state.students
+      };
+      const blob = new Blob([JSON.stringify(data, null, 2)], {type:"application/json"});
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = "alumnado_sorteo.json";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(a.href);
+      toast("Exportado.");
+    }
+
+    async function importData(){
+      // File picker sencillo
+      const inp = document.createElement("input");
+      inp.type = "file";
+      inp.accept = "application/json";
+      inp.onchange = async () => {
+        const file = inp.files?.[0];
+        if(!file) return;
+        try{
+          const txt = await file.text();
+          const parsed = JSON.parse(txt);
+          const incoming = Array.isArray(parsed.students) ? parsed.students : null;
+          if(!incoming) throw new Error("Formato inválido");
+
+          // Normaliza y re-id si faltan
+          const cleaned = incoming
+            .filter(s => s && typeof s.name === "string")
+            .map(s => ({
+              id: (typeof s.id === "string" && s.id.length > 6) ? s.id : uid(),
+              name: s.name.trim(),
+              photoDataUrl: (typeof s.photoDataUrl === "string") ? s.photoDataUrl : null
+            }))
+            .filter(s => s.name.length > 0);
+
+          state.students = cleaned;
+          state.historyIds = [];
+          state.remainingIds = cleaned.map(s=>s.id);
+          clearResultBox();
+          toast("Importado. Ronda nueva.");
+          render();
+        }catch{
+          toast("No pude importar ese archivo.");
+        }
+      };
+      inp.click();
+    }
+
+    // Events
+    addBtn.addEventListener("click", addStudent);
+    clearFormBtn.addEventListener("click", () => {
+      nameInput.value = "";
+      photoInput.value = "";
+      nameInput.focus();
+    });
+    drawBtn.addEventListener("click", draw);
+    undoBtn.addEventListener("click", undoLast);
+    resetRoundBtn.addEventListener("click", resetRound);
+    wipeAllBtn.addEventListener("click", wipeAll);
+    exportBtn.addEventListener("click", exportData);
+    importBtn.addEventListener("click", importData);
+    searchInput.addEventListener("input", render);
+
+    // Enter para añadir
+    nameInput.addEventListener("keydown", (e)=>{
+      if(e.key === "Enter") addStudent();
+    });
+
+    // Init
+    render();
+  </script>
+</body>
+</html>
